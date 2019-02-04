@@ -1,0 +1,7 @@
+[rhel]
+192.168.56.103
+
+[rhel:vars]
+ansible_old_password=SSSSSKSJSDJSET2352356
+ansible_user=root
+ansible_password=changeme

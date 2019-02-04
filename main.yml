@@ -1,0 +1,87 @@
+---
+- name: Check Access to Remote System
+  gather_facts: false
+  hosts: localhost
+  tasks:
+    - name: Check if remote access is currently working
+      shell: |
+        set timeout 10
+        spawn ssh -o StrictHostKeyChecking=no {{ hostvars[groups['rhel'][0]].ansible_user }}@{{ hostvars[groups['rhel'][0]].inventory_hostname }}
+        expect {
+          "*password:" { send "{{ hostvars[groups['rhel'][0]].ansible_password }}\n" }
+          timeout {
+            send_user "Host did not prompt for password."
+            exit 1
+          }
+        }
+        expect {
+          "*#" { send "exit" }
+          timeout {
+            send_user "Logon failed"
+            exit 1
+          }
+        }
+      args:
+        executable: /usr/bin/expect
+      register: rhel_logon_check
+      ignore_errors: yes
+
+    - debug:
+        msg: "{{ rhel_logon_check }}"
+
+    - name: Change Password
+      shell: |
+        set timeout 10
+        spawn ssh -o StrictHostKeyChecking=no {{ hostvars[groups['rhel'][0]].ansible_user }}@{{ hostvars[groups['rhel'][0]].inventory_hostname }}
+        expect {
+          "*password:" { send "{{ hostvars[groups['rhel'][0]].ansible_old_password }}\n" }
+          timeout {
+            send_user "Host did not prompt for password."
+            exit 1
+          }
+        }
+        expect {
+          "*UNIX password:" { send "{{ hostvars[groups['rhel'][0]].ansible_old_password }}\n" }
+          "*#" { send "passwd {{ hostvars[groups['rhel'][0]].ansible_user }}\n" }
+          timeout {
+            send_user "Unable to change password"
+            exit 1
+          }
+        }
+        expect {
+          "New password:" { send "{{ hostvars[groups['rhel'][0]].ansible_password }}\n" }
+          "BAD PASSWORD: *" {
+            send_user "BAD PASSWORD"
+            exit 1
+          }
+          timeout {
+            send_user "Unable to change password"
+            exit 1
+          }
+        }
+        expect {
+          "Retype new password:" { send "{{ hostvars[groups['rhel'][0]].ansible_password }}\n" }
+          timeout {
+            send_user "Unable to change password"
+            exit 1
+          }
+        }
+        expect {
+          "*#" { 
+            send_user "SUCCESS"
+            exit 0 
+          }
+          timeout {
+            send_user "FAILED"
+            exit 1
+          }
+        }
+      args:
+        executable: /usr/bin/expect
+      register: rhel_change_check
+      when: rhel_logon_check.failed == true
+
+      ## Could include installing SSH key here
+
+    - debug:
+        msg: "{{ rhel_change_check }}"
