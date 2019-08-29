@@ -1,4 +1,4 @@
-# ANSIBLE-CHANGE-PASSWORD-ON-FIRST-LOGON
+# ANSIBLE-LINUX-CHANGE-PASSWORD-FIRST-LOGON
 
 Demo playbook to show the posibility of using expect within ansible to change a remote systems password.
 
@@ -17,7 +17,7 @@ Demo playbook to show the posibility of using expect within ansible to change a 
 1. Log in using **ansible_user** and **ansible_password** and check you are given a command prompt.
    Save results in variable **rhel_logon_check**
 
-2. If **rhel_logon_check.failed** == False (i.e. you did not get to a prompt in the 1st step)
+2. If **rhel_logon_check.failed** == True (i.e. you were not able to log in using new creds in 1st step)
    Log in using **ansible_user** and **ansible_old_password** and check for either a password prompt or command prompt.
    - If a password prompt, then re-enter **ansible_old_password** and continue to change using **ansible_password**
    - If a command prompt, then issue the "passwd" command and continue to change using the **ansible_password**
