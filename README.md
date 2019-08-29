@@ -18,6 +18,7 @@ Demo playbook to show the posibility of using expect within ansible to change a 
    Save results in variable **rhel_logon_check**
 
 2. If **rhel_logon_check.failed** == True (i.e. you were not able to log in using new creds in 1st step)
+
    Log in using **ansible_user** and **ansible_old_password** and check for either a password prompt or command prompt.
    - If a password prompt, then re-enter **ansible_old_password** and continue to change using **ansible_password**
    - If a command prompt, then issue the "passwd" command and continue to change using the **ansible_password**
